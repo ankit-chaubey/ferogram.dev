@@ -1,0 +1,1536 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ferogram — A native, elegant MTProto framework</title>
+<meta name="description" content="A native, elegant MTProto framework. One Rust core. First-class Rust and Python.">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090C;
+    --surface: #111318;
+    --surface-2: #171A20;
+    --border: #262A32;
+    --border-soft: #1B1E24;
+    --text: #EDEBE4;
+    --text-dim: #A3A19B;
+    --text-faint: #6C6A66;
+
+    --rust: #FB8332;
+    --rust-soft: #3D2412;
+    --python: #8B5CF6;
+    --python-soft: #26193F;
+    --core: #2DD4BF;
+    --core-soft: #0E2B27;
+    --tg: #22D3EE;
+    --tg-soft: #0C2B30;
+    --slate: #64748B;
+
+    --radius: 10px;
+    --radius-lg: 18px;
+    --mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "Fira Mono", monospace;
+    --sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --nav-bg: rgba(8, 9, 12, 0.78);
+    --shadow-glow: 0 8px 30px -8px rgba(0, 0, 0, 0.5);
+  }
+
+  html[data-theme="light"] {
+    --bg: #FAFAF7;
+    --surface: #FFFFFF;
+    --surface-2: #F3F2ED;
+    --border: #E4E2D9;
+    --border-soft: #EDEBE4;
+    --text: #16171A;
+    --text-dim: #55534B;
+    --text-faint: #8C897F;
+
+    --rust: #EA640C;
+    --python: #7C3AED;
+    --core: #0F9C8C;
+    --tg: #0891B2;
+    --rust-soft: #FCE3CC;
+    --python-soft: #E7DCFB;
+    --core-soft: #D2F1EB;
+    --tg-soft: #D3F0F5;
+    --nav-bg: rgba(250, 250, 247, 0.8);
+    --shadow-glow: 0 8px 30px -8px rgba(20, 18, 10, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  ::selection { background: var(--rust); color: #0A0B0D; }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  code, .mono { font-family: var(--mono); }
+
+  /* Nav */
+  header.nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .nav-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .brand .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--rust), var(--python));
+    flex-shrink: 0;
+  }
+  .brand .mark {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: block;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links .gh {
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+  .nav-links .gh:hover { border-color: var(--text-dim); }
+  .theme-toggle {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .theme-toggle:hover { color: var(--text); border-color: var(--text-faint); }
+  .theme-toggle svg { width: 15px; height: 15px; }
+  .theme-toggle .moon { display: none; }
+  html[data-theme="light"] .theme-toggle .sun { display: none; }
+  html[data-theme="light"] .theme-toggle .moon { display: block; }
+  @media (max-width: 640px) {
+    .nav-links a.hide-sm { display: none; }
+  }
+
+  /* Hero */
+  .hero {
+    padding: 96px 0 64px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: -220px;
+    left: 50%;
+    width: 720px;
+    height: 420px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, color-mix(in srgb, var(--rust) 16%, transparent), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero .wrap { position: relative; z-index: 1; }
+  .hero .hero-mark {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    margin: 0 auto 24px;
+    display: block;
+    filter: drop-shadow(0 6px 20px color-mix(in srgb, var(--rust) 35%, transparent));
+  }
+  .hero .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: clamp(40px, 7vw, 64px);
+    letter-spacing: -0.02em;
+    margin-bottom: 18px;
+    background: linear-gradient(135deg, var(--text) 40%, var(--rust) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+  }
+  .hero .tagline {
+    font-size: clamp(17px, 2.4vw, 20px);
+    color: var(--text-dim);
+    max-width: 560px;
+    margin: 0 auto 8px;
+  }
+  .hero .sub {
+    font-size: 15px;
+    color: var(--text-faint);
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* Language cards */
+  .lang-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 720px;
+    margin: 48px auto 0;
+  }
+  @media (max-width: 640px) {
+    .lang-cards { grid-template-columns: 1fr; }
+  }
+  .lang-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    text-align: left;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .lang-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-glow);
+  }
+  .lang-card.rust:hover { border-color: color-mix(in srgb, var(--rust) 55%, var(--border)); }
+  .lang-card.python:hover { border-color: color-mix(in srgb, var(--python) 55%, var(--border)); }
+
+  .lang-card .head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .lang-card .chip {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .lang-card.rust .chip { background: var(--rust); }
+  .lang-card.python .chip { background: var(--python); }
+  .lang-card .name {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .lang-card .install {
+    display: block;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    color: var(--text);
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .lang-card .role {
+    font-size: 13px;
+    color: var(--text-faint);
+    margin-bottom: 18px;
+  }
+  .lang-card .cta {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .lang-card.rust .cta { color: var(--rust); }
+  .lang-card.python .cta { color: var(--python); }
+  .lang-card .cta:hover { text-decoration: underline; }
+
+  /* Section shell */
+  section { padding: 88px 0; }
+  section.tight { padding: 64px 0; }
+  .section-head {
+    text-align: center;
+    max-width: 620px;
+    margin: 0 auto 48px;
+  }
+  .section-head .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 12px;
+  }
+  .section-head h2 {
+    font-family: var(--mono);
+    font-size: clamp(26px, 4vw, 34px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+    line-height: 1.25;
+  }
+  .section-head p {
+    color: var(--text-dim);
+    font-size: 15.5px;
+  }
+
+  hr.rule {
+    border: none;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  /* Architecture */
+  .arch-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .arch-frame img { width: 100%; display: block; border-radius: 6px; }
+  .arch-caption {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-faint);
+    margin-top: 18px;
+  }
+
+  /* Dual-image auto carousel */
+  .img-carousel {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    aspect-ratio: 16 / 10;
+    margin: 0 auto;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    box-shadow: var(--shadow-glow);
+    animation: carouselGlow 9s ease-in-out infinite;
+  }
+  @keyframes carouselGlow {
+    0%, 100% { box-shadow: var(--shadow-glow), 0 0 0 1px color-mix(in srgb, var(--rust) 45%, transparent), 0 0 32px -12px color-mix(in srgb, var(--rust) 55%, transparent); }
+    33% { box-shadow: var(--shadow-glow), 0 0 0 1px color-mix(in srgb, var(--python) 45%, transparent), 0 0 32px -12px color-mix(in srgb, var(--python) 55%, transparent); }
+    66% { box-shadow: var(--shadow-glow), 0 0 0 1px color-mix(in srgb, var(--tg) 45%, transparent), 0 0 32px -12px color-mix(in srgb, var(--tg) 55%, transparent); }
+  }
+  .img-carousel .track {
+    display: flex;
+    width: 200%;
+    height: 100%;
+    transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .img-carousel.at-1 .track { transform: translateX(-50%); }
+  .img-carousel .slide {
+    width: 50%;
+    height: 100%;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .img-carousel .slide img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transform: scale(1.08);
+    transition: transform 5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+    opacity: 0.85;
+  }
+  .img-carousel.at-0 .slide:first-child img,
+  .img-carousel.at-1 .slide:last-child img {
+    transform: scale(1);
+    opacity: 1;
+  }
+  .img-carousel .dots {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 2;
+  }
+  .img-carousel .dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    transition: background 0.3s ease, width 0.3s ease, box-shadow 0.3s ease;
+  }
+  .img-carousel.at-0 .dots span:first-child,
+  .img-carousel.at-1 .dots span:last-child {
+    background: linear-gradient(135deg, var(--rust), var(--python));
+    box-shadow: 0 0 10px -1px color-mix(in srgb, var(--rust) 70%, transparent);
+    width: 18px;
+    border-radius: 3px;
+  }
+  .arch-note {
+    max-width: 640px;
+    margin: 28px auto 0;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 15px;
+  }
+  .arch-note strong { color: var(--text); font-weight: 600; }
+
+  /* Language switcher */
+  .switch-wrap { max-width: 680px; margin: 0 auto; }
+  .switch {
+    display: inline-flex;
+    padding: 3px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    margin-bottom: 28px;
+  }
+  .switch-tabs { display: flex; justify-content: center; }
+  .switch button {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 8px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .switch button .chip {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+  .switch button[data-lang="rust"] .chip { background: var(--rust); }
+  .switch button[data-lang="python"] .chip { background: var(--python); }
+  .switch button.active { background: var(--surface); color: var(--text); }
+  .switch button.active[data-lang="rust"] { box-shadow: inset 0 0 0 1px #7A3D14; }
+  .switch button.active[data-lang="python"] { box-shadow: inset 0 0 0 1px #4C2E96; }
+
+  .panel { display: none; animation: fade 0.2s ease; }
+  .panel.active { display: block; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .code-block .bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-soft);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .code-block pre {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 18px 16px;
+    overflow-x: auto;
+    color: var(--text);
+  }
+  .code-block .kw { color: #C97BE0; }
+  .code-block .str { color: #9CD67F; }
+  .code-block .cm { color: var(--text-faint); }
+  .code-block .fn { color: #6FB8E6; }
+
+  .panel-links {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .panel-links a {
+    font-family: var(--mono);
+    font-size: 13px;
+    border: 1px solid var(--border);
+    padding: 9px 16px;
+    border-radius: 6px;
+    color: var(--text-dim);
+  }
+  .panel-links a:hover { color: var(--text); border-color: var(--text-faint); }
+  .panel-links a.primary { color: var(--bg); border-color: transparent; }
+  .panel-links a.primary[data-lang="rust"] { background: var(--rust); }
+  .panel-links a.primary[data-lang="python"] { background: var(--python); }
+
+  /* Features */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border-soft);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  @media (max-width: 720px) {
+    .feature-grid { grid-template-columns: 1fr; }
+  }
+  .feature-cat {
+    background: var(--bg);
+    padding: 28px 28px 24px;
+  }
+  .feature-cat .cat-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .feature-cat .cat-title .chip { width: 6px; height: 6px; border-radius: 50%; }
+  .feature-cat ul { list-style: none; }
+  .feature-cat li {
+    font-size: 14.5px;
+    color: var(--text-dim);
+    padding: 7px 0;
+    border-top: 1px solid var(--border-soft);
+  }
+  .feature-cat li:first-child { border-top: none; }
+
+  /* Capabilities */
+  .cap-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .cap-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 9px 16px;
+    border-radius: 999px;
+  }
+  .cap-pill .chip { width: 7px; height: 7px; border-radius: 50%; background: var(--core); flex-shrink: 0; }
+  .cap-note {
+    max-width: 600px;
+    margin: 0 auto 56px;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 14.5px;
+  }
+  .crate-sub {
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 24px;
+  }
+  .crate-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 900px) {
+    .crate-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .crate-grid { grid-template-columns: 1fr; }
+  }
+  .crate-card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 20px 18px;
+    overflow: hidden;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .crate-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--card-grad);
+    opacity: 0.55;
+    transition: opacity 0.2s ease;
+  }
+  .crate-card:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--card-glow) 45%, var(--border));
+    box-shadow: var(--shadow-glow), 0 0 0 1px color-mix(in srgb, var(--card-glow) 18%, transparent);
+  }
+  .crate-card:hover::before { opacity: 1; }
+  .crate-card.main { border-color: color-mix(in srgb, var(--rust) 40%, var(--border)); }
+  .crate-card .name {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .crate-card .badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #fff;
+    background: var(--card-grad);
+    box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--card-glow) 70%, transparent);
+  }
+  .crate-card .label { flex: 1; min-width: 0; }
+  .crate-card .name .tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--rust);
+    background: var(--rust-soft);
+    padding: 2px 7px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .crate-card .desc { font-size: 13px; color: var(--text-faint); line-height: 1.55; }
+
+  /* Per-crate premium gradient combinations */
+  .crate-card.g1  { --card-grad: linear-gradient(135deg, #FFB35A, #FB8332); --card-glow: #FB8332; }
+  .crate-card.g2  { --card-grad: linear-gradient(135deg, #7DB2FF, #2563EB); --card-glow: #3B82F6; }
+  .crate-card.g3  { --card-grad: linear-gradient(135deg, #4ADE80, #0D9488); --card-glow: #14B8A6; }
+  .crate-card.g4  { --card-grad: linear-gradient(135deg, #A5B4FC, #4338CA); --card-glow: #6366F1; }
+  .crate-card.g5  { --card-grad: linear-gradient(135deg, #FB7185, #DC2626); --card-glow: #EF4444; }
+  .crate-card.g6  { --card-grad: linear-gradient(135deg, #D8B4FE, #A21CAF); --card-glow: #C026D3; }
+  .crate-card.g7  { --card-grad: linear-gradient(135deg, #67E8F9, #0369A1); --card-glow: #0EA5E9; }
+  .crate-card.g8  { --card-grad: linear-gradient(135deg, #FDE68A, #D97706); --card-glow: #F59E0B; }
+  .crate-card.g9  { --card-grad: linear-gradient(135deg, #5EEAD4, #0F766E); --card-glow: #2DD4BF; }
+  .crate-card.g10 { --card-grad: linear-gradient(135deg, #BEF264, #4D7C0F); --card-glow: #84CC16; }
+  .crate-card.g11 { --card-grad: linear-gradient(135deg, #F9A8D4, #BE185D); --card-glow: #EC4899; }
+  .crate-card.g12 { --card-grad: linear-gradient(135deg, #C4B5FD, #6D28D9); --card-glow: #8B5CF6; }
+  .crate-card.g13 { --card-grad: linear-gradient(135deg, #CBD5E1, #334155); --card-glow: #64748B; }
+  .crate-card.g14 { --card-grad: linear-gradient(135deg, #67E8F9, #0891B2); --card-glow: #22D3EE; }
+
+  /* Ecosystem */
+  .eco-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 900px) {
+    .eco-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 520px) {
+    .eco-grid { grid-template-columns: 1fr; }
+  }
+  .eco-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 140px;
+  }
+  .eco-card:hover { transform: translateY(-2px); border-color: var(--text-faint); }
+  .eco-card .icon {
+    width: 30px; height: 30px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .eco-card .title { font-weight: 600; font-size: 14.5px; margin-bottom: 5px; }
+  .eco-card .desc { font-size: 13px; color: var(--text-faint); flex-grow: 1; }
+  .eco-card .link { font-family: var(--mono); font-size: 12px; color: var(--text-faint); margin-top: 12px; }
+  .eco-card:hover .link { color: var(--text-dim); }
+
+  /* Community */
+  .community-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+  .community-row a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 9px 16px;
+    border-radius: 999px;
+  }
+  .community-row a:hover { color: var(--text); border-color: var(--text-faint); }
+  .community-row a svg { width: 14px; height: 14px; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border-soft);
+    padding: 40px 0;
+  }
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-links {
+    display: flex;
+    gap: 24px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  .footer-links a:hover { color: var(--text-dim); }
+  .footer-meta {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text-faint);
+    text-align: right;
+  }
+  @media (max-width: 640px) {
+    .footer-inner { flex-direction: column; align-items: flex-start; }
+    .footer-meta { text-align: left; }
+  }
+
+  /* TgCalls */
+  .tgcalls-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .tgcalls-media {
+    border-bottom: 1px solid var(--border-soft);
+    background: var(--surface-2);
+  }
+  .tgcalls-media img {
+    width: 100%;
+    display: block;
+  }
+  .tgcalls-body {
+    padding: 40px 40px 44px;
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 40px;
+  }
+  @media (max-width: 800px) {
+    .tgcalls-body { grid-template-columns: 1fr; padding: 32px 24px 36px; }
+  }
+  .tgcalls-body h2 {
+    font-family: var(--mono);
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+  }
+  .tgcalls-body .tagline { color: var(--text-dim); font-size: 15px; margin-bottom: 14px; }
+  .tgcalls-body .desc { color: var(--text-faint); font-size: 14px; margin-bottom: 22px; }
+  .tgcalls-links { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tgcalls-links a {
+    font-family: var(--mono);
+    font-size: 13px;
+    border: 1px solid var(--border);
+    padding: 9px 16px;
+    border-radius: 6px;
+    color: var(--text-dim);
+  }
+  .tgcalls-links a:hover { color: var(--text); border-color: var(--text-faint); }
+  .tgcalls-links a.primary { color: var(--bg); background: var(--tg); border-color: transparent; }
+  .tgcalls-code .code-block { margin-bottom: 0; }
+  .tgcalls-body > * { min-width: 0; }
+
+  .tgcalls-example {
+    border-top: 1px solid var(--border-soft);
+    padding: 36px 40px 40px;
+  }
+  @media (max-width: 800px) {
+    .tgcalls-example { padding: 28px 24px 32px; }
+  }
+  .tgcalls-example .example-lead {
+    color: var(--text-dim);
+    font-size: 14.5px;
+    max-width: 620px;
+    margin-bottom: 20px;
+  }
+  .tgcalls-example .example-lead .mono { color: var(--tg); }
+  .tgc-switch {
+    display: inline-flex;
+    padding: 3px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .tgc-switch button {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .tgc-switch button.active { background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px var(--tg-soft); }
+  .tgc-panel { display: none; animation: fade 0.2s ease; }
+  .tgc-panel.active { display: block; }
+  .tgcalls-more { margin-top: 14px; }
+  .tgcalls-more a {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  .tgcalls-more a:hover { color: var(--text-dim); }
+
+  /* About */
+  .about-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  @media (max-width: 640px) { .about-card { padding: 32px 24px; } }
+  .about-card h2 {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+  .about-card .role {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-faint);
+    margin-bottom: 18px;
+  }
+  .about-card p {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 480px;
+    margin: 0 auto 26px;
+  }
+  .about-links { display: flex; justify-content: center; gap: 10px; }
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    color: var(--text-dim);
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .icon-btn:hover { color: var(--text); border-color: var(--text-faint); transform: translateY(-2px); }
+
+  /* Footer columns */
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 32px;
+    padding-bottom: 32px;
+  }
+  @media (max-width: 640px) {
+    .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+  }
+  .footer-col .brand { margin-bottom: 12px; }
+  .footer-col .blurb { color: var(--text-faint); font-size: 13.5px; max-width: 280px; }
+  .footer-col h4 {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col ul a { font-size: 13.5px; color: var(--text-dim); }
+  .footer-col ul a:hover { color: var(--text); }
+  .footer-bottom {
+    border-top: 1px solid var(--border-soft);
+    padding-top: 24px;
+  }
+
+  /* Back to top */
+  .to-top {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--text-dim);
+    cursor: pointer;
+    box-shadow: var(--shadow-glow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.15s ease, color 0.15s ease, visibility 0.25s;
+    z-index: 60;
+  }
+  .to-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
+  .to-top:hover { color: var(--text); border-color: var(--rust); }
+  .to-top svg { width: 18px; height: 18px; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand"><img class="mark" src="assets/logo-96.png" alt="Ferogram" width="22" height="22">ferogram</div>
+    <nav class="nav-links">
+      <a href="#language" class="hide-sm">Get started</a>
+      <a href="#features" class="hide-sm">Features</a>
+      <a href="#capabilities" class="hide-sm">Crates</a>
+      <a href="#ecosystem" class="hide-sm">Ecosystem</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle color theme">
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <a href="https://github.com/ankit-chaubey/ferogram" class="gh">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <img class="hero-mark" src="assets/logo-160.png" alt="Ferogram logo" width="56" height="56">
+      <div class="eyebrow">MTProto framework</div>
+      <h1>Ferogram</h1>
+      <p class="tagline">A native, elegant MTProto framework for building Telegram clients and bots.</p>
+      <p class="sub">Talks to Telegram directly over MTProto, no Bot API in between, with one Rust core shared across Rust and Python.</p>
+
+      <div class="lang-cards">
+        <div class="lang-card rust">
+          <div class="head"><span class="chip"></span><span class="name">Rust</span></div>
+          <code class="install">cargo add ferogram</code>
+          <div class="role">Primary framework</div>
+          <a class="cta" href="#language" data-jump="rust">Get started →</a>
+        </div>
+        <div class="lang-card python">
+          <div class="head"><span class="chip"></span><span class="name">Python</span></div>
+          <code class="install">pip install ferogram</code>
+          <div class="role">Powered by the same Rust core</div>
+          <a class="cta" href="#language" data-jump="python">Get started →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Architecture -->
+  <section id="architecture">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Shared architecture</div>
+        <h2>One engine.<br>Two languages.</h2>
+        <p>Rust and Python run on exactly the same networking, encryption, MTProto implementation, TL parser, transport, update handling, and session management. Python is not a separate reimplementation, it is powered by the same compiled Rust core.</p>
+      </div>
+
+      <div class="arch-frame">
+        <img src="https://raw.githubusercontent.com/ankit-chaubey/ferogram-py/main/assets/architecture.svg" alt="Diagram: user code calls the Python layer (client, filters, types, updates, keyboards, rich text), which crosses an FFI boundary via PyO3 into the compiled Rust extension (_ferogram.so), built from ferogram_mtsender, ferogram_connect, ferogram_crypto, ferogram_session and ferogram_tl_types, which then talks TCP/TLS to Telegram's MTProto servers.">
+      </div>
+      <p class="arch-caption">Python calls cross an FFI boundary once, into the same Rust crates that power the native <span class="mono">ferogram</span> client.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Language switcher -->
+  <section id="language">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Choose your language</div>
+        <h2>Same engine, your syntax</h2>
+        <p>Install, write a bot, and read the docs, all in the language you already use.</p>
+      </div>
+
+      <div class="switch-wrap">
+        <div class="switch-tabs">
+          <div class="switch">
+            <button data-lang="rust" class="active"><span class="chip"></span>Rust</button>
+            <button data-lang="python"><span class="chip"></span>Python</button>
+          </div>
+        </div>
+
+        <div class="panel active" data-panel="rust">
+          <div class="code-block">
+            <div class="bar"><span>main.rs</span><span>cargo add ferogram</span></div>
+            <pre><span class="kw">use</span> ferogram::Client;
+
+<span class="kw">const</span> API_ID: i32 = 0;
+<span class="kw">const</span> API_HASH: &amp;str = <span class="str">""</span>;
+
+<span class="cm">#[tokio::main]</span>
+<span class="kw">async fn</span> <span class="fn">main</span>() -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">let</span> (client, _) = Client::quick_connect(<span class="str">"my.session"</span>, API_ID, API_HASH).await?;
+
+    client.send_message(<span class="str">"me"</span>, <span class="str">"Hello from ferogram!"</span>).await?;
+    Ok(())
+}</pre>
+          </div>
+          <div class="panel-links">
+            <a class="primary" data-lang="rust" href="https://crates.io/crates/ferogram">crates.io</a>
+            <a href="https://docs.ferogram.dev">docs.ferogram.dev</a>
+            <a href="https://github.com/ankit-chaubey/ferogram">GitHub</a>
+            <a href="https://github.com/ankit-chaubey/ferogram/tree/main/ferogram/examples">View examples →</a>
+          </div>
+        </div>
+
+        <div class="panel" data-panel="python">
+          <div class="code-block">
+            <div class="bar"><span>main.py</span><span>pip install ferogram</span></div>
+            <pre><span class="kw">import</span> asyncio
+<span class="kw">from</span> ferogram <span class="kw">import</span> Client
+
+app = Client(<span class="str">"myaccount"</span>, api_id=0, api_hash=<span class="str">""</span>, phone=<span class="str">"+1234567890"</span>)
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    <span class="kw">async with</span> app <span class="kw">as</span> client:
+        <span class="kw">await</span> client.send_message(<span class="str">"me"</span>, <span class="str">"Hello from ferogram!"</span>)
+
+asyncio.run(main())</pre>
+          </div>
+          <div class="panel-links">
+            <a class="primary" data-lang="python" href="https://pypi.org/project/ferogram/">PyPI</a>
+            <a href="https://docs.ferogram.dev">docs.ferogram.dev</a>
+            <a href="https://github.com/ankit-chaubey/ferogram-py">GitHub</a>
+            <a href="https://github.com/ankit-chaubey/ferogram-py/tree/main/examples">View examples →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Features -->
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">What you get</div>
+        <h2>Built for production</h2>
+      </div>
+
+      <div class="feature-grid">
+        <div class="feature-cat">
+          <div class="cat-title"><span class="chip" style="background:var(--core)"></span>Performance</div>
+          <ul>
+            <li>Native Rust core</li>
+            <li>Async from the ground up</li>
+            <li>Single-task connection I/O, no lock contention</li>
+            <li>Efficient TL serialization</li>
+          </ul>
+        </div>
+        <div class="feature-cat">
+          <div class="cat-title"><span class="chip" style="background:var(--tg)"></span>MTProto</div>
+          <ul>
+            <li>Direct MTProto, no Bot API in between</li>
+            <li>Current API layer, kept up to date</li>
+            <li>Pluggable session backends</li>
+            <li>Gap-safe update handling (pts/qts/seq)</li>
+          </ul>
+        </div>
+        <div class="feature-cat">
+          <div class="cat-title"><span class="chip" style="background:var(--rust)"></span>Developer experience</div>
+          <ul>
+            <li>Composable filters</li>
+            <li>Finite-state conversations</li>
+            <li>Inline keyboards and rich text</li>
+            <li>Drop to raw TL calls when you need to</li>
+          </ul>
+        </div>
+        <div class="feature-cat">
+          <div class="cat-title"><span class="chip" style="background:var(--python)"></span>Cross-language</div>
+          <ul>
+            <li>Rust and Python, same core</li>
+            <li>One protocol implementation to trust</li>
+            <li>Fixes and speedups land in both at once</li>
+            <li>Voice and video calling via TgCalls</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Capabilities -->
+  <section id="capabilities">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Under the hood</div>
+        <h2>Everything a real client needs</h2>
+        <p>MTProxy, rich messaging, CDN downloads, high-speed transfers, and steady performance under load, plus a lot more that doesn't fit in a headline.</p>
+      </div>
+
+      <div class="cap-row">
+        <div class="cap-pill"><span class="chip"></span>MTProxy support</div>
+        <div class="cap-pill"><span class="chip"></span>Rich messaging &amp; entities</div>
+        <div class="cap-pill"><span class="chip"></span>CDN downloads</div>
+        <div class="cap-pill"><span class="chip"></span>High-speed upload &amp; download</div>
+        <div class="cap-pill"><span class="chip"></span>High performance under load</div>
+        <div class="cap-pill"><span class="chip"></span>Clear crate separation</div>
+      </div>
+      <p class="cap-note">The goal is to stay out of your way: simple things should be simple, and advanced things should still be possible.</p>
+
+      <div class="crate-sub">14 crates, each doing own job</div>
+      <div class="crate-grid">
+        <a class="crate-card main g1" href="https://crates.io/crates/ferogram">
+          <div class="name"><span class="badge">FG</span><span class="label">ferogram</span> <span class="tag">Start here</span></div>
+          <div class="desc">The main client. Talks to Telegram over MTProto directly, handles auth for bots and user accounts, and gives you a dispatcher, filters, FSM, CDN downloads, middleware, and a raw <span class="mono">invoke()</span> escape hatch.</div>
+        </a>
+        <a class="crate-card g2" href="https://crates.io/crates/ferogram-mtsender">
+          <div class="name"><span class="badge">MS</span><span class="label">ferogram-mtsender</span></div>
+          <div class="desc">Owns the DC connection pool and the retry loop for RPC calls, with pluggable policies like AutoSleep, NoRetries, and CircuitBreaker, plus jittered FLOOD_WAIT handling.</div>
+        </a>
+        <a class="crate-card g3" href="https://crates.io/crates/ferogram-connect">
+          <div class="name"><span class="badge">CN</span><span class="label">ferogram-connect</span></div>
+          <div class="desc">Raw TCP connection and MTProto framing. Abridged, Intermediate, Padded Intermediate, and Full transports, plus Obfuscated2, FakeTLS, and SOCKS5 for MTProxy.</div>
+        </a>
+        <a class="crate-card g4" href="https://crates.io/crates/ferogram-mtproto">
+          <div class="name"><span class="badge">MP</span><span class="label">ferogram-mtproto</span></div>
+          <div class="desc">The MTProto 2.0 session layer: DH key exchange, encrypted session pack/unpack, msg_key derivation, salts, and message framing.</div>
+        </a>
+        <a class="crate-card g5" href="https://crates.io/crates/ferogram-crypto">
+          <div class="name"><span class="badge">CR</span><span class="label">ferogram-crypto</span></div>
+          <div class="desc">AES-IGE, RSA, SHA-1/256, Diffie-Hellman, PQ factorization, and transport obfuscation, written specifically for MTProto rather than borrowed from a general-purpose library.</div>
+        </a>
+        <a class="crate-card g6" href="https://crates.io/crates/ferogram-session">
+          <div class="name"><span class="badge">SS</span><span class="label">ferogram-session</span></div>
+          <div class="desc">Session persistence: DC address tables, auth keys and salts, update counters, peer access hashes, and pluggable storage backends.</div>
+        </a>
+        <a class="crate-card g7" href="https://crates.io/crates/ferogram-msgbox">
+          <div class="name"><span class="badge">MB</span><span class="label">ferogram-msgbox</span></div>
+          <div class="desc">Tracks pts/qts/seq for the Updates stream and detects exactly when an update was missed, so a diff can be requested instead of guessing.</div>
+        </a>
+        <a class="crate-card g8" href="https://crates.io/crates/ferogram-tl-types">
+          <div class="name"><span class="badge">TT</span><span class="label">ferogram-tl-types</span></div>
+          <div class="desc">2,329 auto-generated Rust types covering every Telegram API constructor, function, and enum, with binary TL serialization built in.</div>
+        </a>
+        <a class="crate-card g9" href="https://crates.io/crates/ferogram-tl-gen">
+          <div class="name"><span class="badge">TG</span><span class="label">ferogram-tl-gen</span></div>
+          <div class="desc">Build-time code generator that turns a parsed TL schema into Rust source inside <span class="mono">build.rs</span>, keeping the API in step with Telegram's schema.</div>
+        </a>
+        <a class="crate-card g10" href="https://crates.io/crates/ferogram-tl-parser">
+          <div class="name"><span class="badge">TP</span><span class="label">ferogram-tl-parser</span></div>
+          <div class="desc">Reads raw <span class="mono">.tl</span> schema files and produces the structured AST that ferogram-tl-gen builds Rust code from.</div>
+        </a>
+        <a class="crate-card g11" href="https://crates.io/crates/ferogram-parsers">
+          <div class="name"><span class="badge">PR</span><span class="label">ferogram-parsers</span></div>
+          <div class="desc">Converts Telegram-flavoured Markdown and HTML to and from message entities, for anyone formatting text outside the full client.</div>
+        </a>
+        <a class="crate-card g12" href="https://crates.io/crates/ferogram-fsm">
+          <div class="name"><span class="badge">FS</span><span class="label">ferogram-fsm</span></div>
+          <div class="desc">State storage and context for multi-step bot conversations, with a pluggable backend trait and an in-process memory store built in.</div>
+        </a>
+        <a class="crate-card g13" href="https://crates.io/crates/ferogram-derive">
+          <div class="name"><span class="badge">DV</span><span class="label">ferogram-derive</span></div>
+          <div class="desc">Procedural macros for the workspace, currently <span class="mono">#[derive(FsmState)]</span> for turning a plain enum into an FSM state type.</div>
+        </a>
+        <a class="crate-card g14" href="https://crates.io/crates/tgcalls">
+          <div class="name"><span class="badge">TC</span><span class="label">tgcalls</span> <span class="tag" style="color:var(--tg); background:var(--tg-soft);">Voice &amp; video</span></div>
+          <div class="desc">Voice and video calling on top of <span class="mono">ferogram</span>, powered by <span class="mono">ntgcalls</span>. Join group calls, stream media, and handle P2P calls.</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- TgCalls -->
+  <section id="tgcalls">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Voice &amp; video</div>
+        <h2>Bring calls into it too</h2>
+        <p>TgCalls extends the same client with voice and video calling, no separate stack to learn.</p>
+      </div>
+
+      <div class="tgcalls-card">
+        <div class="tgcalls-media">
+          <div class="img-carousel at-0" data-carousel style="max-width:none; aspect-ratio:21/9; border-radius:0; border:none;">
+            <div class="track">
+              <div class="slide">
+                <img src="https://raw.githubusercontent.com/ankit-chaubey/tgcalls/main/.github/images/banner.png" alt="TgCalls banner artwork">
+              </div>
+              <div class="slide">
+                <img src="https://raw.githubusercontent.com/ankit-chaubey/tgcalls/main/.github/images/tgcalls.png" alt="TgCalls logo">
+              </div>
+            </div>
+            <div class="dots"><span></span><span></span></div>
+          </div>
+        </div>
+        <div class="tgcalls-body">
+          <div>
+            <h2>TgCalls</h2>
+            <p class="tagline">An elegant Rust client for Telegram voice and video calls.</p>
+            <p class="desc">Bridges Telegram's calling stack with a clean Rust API. Join group calls, stream audio or video, and handle direct P2P calls, built on <span class="mono">ferogram</span> and powered by <span class="mono">ntgcalls</span>.</p>
+            <div class="tgcalls-links">
+              <a class="primary" href="https://crates.io/crates/tgcalls">crates.io</a>
+              <a href="https://docs.rs/tgcalls">docs.rs</a>
+              <a href="https://github.com/ankit-chaubey/tgcalls">GitHub</a>
+            </div>
+          </div>
+          <div class="tgcalls-code">
+            <div class="code-block">
+              <div class="bar"><span>call.rs</span><span>cargo add tgcalls</span></div>
+              <pre><span class="kw">let</span> calls = Calls::<span class="fn">new</span>(client);
+calls.play(chat_id, <span class="str">"song.mp3"</span>).await?;</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="tgcalls-example">
+          <p class="example-lead">The simplest way to play audio in a group call, <span class="mono">Calls</span> handles join, voice-chat creation, and media detection for you.</p>
+
+          <div class="tgc-switch">
+            <button data-tgc="quick" class="active">Quick play</button>
+            <button data-tgc="full">Full example</button>
+          </div>
+
+          <div class="tgc-panel active" data-tgcpanel="quick">
+            <div class="code-block">
+              <div class="bar"><span>call.rs</span><span>cargo add tgcalls</span></div>
+              <pre><span class="kw">let</span> calls = Calls::<span class="fn">new</span>(client);
+calls.play(chat_id, <span class="str">"song.mp3"</span>).await?;</pre>
+            </div>
+          </div>
+
+          <div class="tgc-panel" data-tgcpanel="full">
+            <div class="code-block">
+              <div class="bar"><span>simple_calls.rs</span><span>cargo run --example simple_calls</span></div>
+              <pre><span class="kw">use</span> tgcalls::Calls;
+
+<span class="cm">#[tokio::main]</span>
+<span class="kw">async fn</span> <span class="fn">main</span>() -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">let mut</span> args = std::env::args().skip(1);
+    <span class="kw">let</span> chat_id: i64 = args
+        .next()
+        .expect(<span class="str">"usage: simple_calls &lt;chat_id&gt; &lt;file&gt;"</span>)
+        .parse()?;
+    <span class="kw">let</span> path = args.next().expect(<span class="str">"missing audio file path"</span>);
+
+    <span class="kw">let</span> api_id: i32 = std::env::var(<span class="str">"API_ID"</span>)?.parse()?;
+    <span class="kw">let</span> api_hash = std::env::var(<span class="str">"API_HASH"</span>)?;
+    <span class="kw">let</span> (client, shutdown) =
+        ferogram::Client::quick_connect(<span class="str">"tgcalls.session"</span>, api_id, &amp;api_hash).await?;
+
+    <span class="kw">let</span> calls = Calls::<span class="fn">new</span>(client);
+    calls.play(chat_id, path).await?;
+
+    println!(<span class="str">"Playing. Press Ctrl+C to stop."</span>);
+    tokio::signal::ctrl_c().await?;
+
+    calls.leave(chat_id).await?;
+    drop(shutdown);
+    Ok(())
+}</pre>
+            </div>
+          </div>
+
+          <div class="tgcalls-more">
+            <a href="https://github.com/ankit-chaubey/tgcalls/tree/main/examples">View more examples →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Ecosystem -->
+  <section id="ecosystem">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Ferogram workspace</div>
+        <h2>The ecosystem</h2>
+      </div>
+
+      <div class="eco-grid">
+        <a class="eco-card" href="https://github.com/ankit-chaubey/ferogram">
+          <div class="icon" style="background:var(--rust-soft); color:var(--rust);">RS</div>
+          <div class="title">Ferogram</div>
+          <div class="desc">Native Rust MTProto framework.</div>
+          <div class="link">crates.io →</div>
+        </a>
+        <a class="eco-card" href="https://github.com/ankit-chaubey/ferogram-py">
+          <div class="icon" style="background:var(--python-soft); color:var(--python);">PY</div>
+          <div class="title">Ferogram Python</div>
+          <div class="desc">Elegant Python framework, powered by the Rust core.</div>
+          <div class="link">PyPI →</div>
+        </a>
+        <a class="eco-card" href="https://github.com/ankit-chaubey/tgcalls">
+          <div class="icon" style="background:var(--tg-soft); color:var(--tg);">TG</div>
+          <div class="title">TgCalls</div>
+          <div class="desc">An elegant Rust client for Telegram voice and video calls.</div>
+          <div class="link">crates.io →</div>
+        </a>
+        <a class="eco-card" href="https://docs.ferogram.dev">
+          <div class="icon" style="background:var(--surface-2); color:var(--text-dim);">DX</div>
+          <div class="title">Documentation</div>
+          <div class="desc">Guides, API reference, and feature coverage.</div>
+          <div class="link">docs.ferogram.dev →</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Community -->
+  <section class="tight" id="community">
+    <div class="wrap">
+      <div class="section-head" style="margin-bottom:32px;">
+        <div class="eyebrow">Community</div>
+        <h2>Talk to the project</h2>
+      </div>
+      <div class="community-row">
+        <a href="https://github.com/ankit-chaubey/ferogram">GitHub</a>
+        <a href="https://t.me/Ferogram">Telegram Channel</a>
+        <a href="https://t.me/FerogramChat">Telegram Chat</a>
+        <a href="https://pypi.org/project/ferogram/">PyPI</a>
+        <a href="https://crates.io/crates/ferogram">crates.io</a>
+        <a href="https://docs.rs/ferogram">docs.rs</a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- About -->
+  <section class="tight" id="about">
+    <div class="wrap">
+      <div class="about-card">
+        <h2>Ankit Chaubey</h2>
+        <div class="role">College student · Developer · Writer</div>
+        <p>A curious mind with a quiet interest in how systems, ideas, and people work. Peace, learning through reflection, writing, and building, and staying close to nature and animals, these are the things that make us human.</p>
+        <div class="about-links">
+          <a class="icon-btn" href="https://t.me/ankify" aria-label="Telegram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>
+          </a>
+          <a class="icon-btn" href="mailto:ankitchaubey.dev@gmail.com" aria-label="Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+          </a>
+          <a class="icon-btn" href="https://ankitchaubey.in" aria-label="Website" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20Z"/></svg>
+          </a>
+          <a class="icon-btn" href="https://github.com/ankit-chaubey" aria-label="GitHub" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.5 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.46-1.19-1.11-1.5-1.11-1.5-.9-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.27 2.75 1.05a9.24 9.24 0 0 1 5 0c1.9-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.48-.01 2.82 0 .28.18.61.69.5A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="brand"><img class="mark" src="assets/logo-96.png" alt="Ferogram" width="22" height="22">ferogram</div>
+        <p class="blurb">A native, elegant MTProto framework. One Rust core, first-class Rust and Python.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick links</h4>
+        <ul>
+          <li><a href="#language">Get started</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#ecosystem">Ecosystem</a></li>
+          <li><a href="https://docs.ferogram.dev">Documentation</a></li>
+          <li><a href="https://github.com/ankit-chaubey/ferogram/blob/main/LICENSE-MIT">License</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Connect with us</h4>
+        <ul>
+          <li><a href="https://github.com/ankit-chaubey/ferogram">GitHub</a></li>
+          <li><a href="https://t.me/Ferogram">Telegram channel</a></li>
+          <li><a href="https://t.me/FerogramChat">Telegram chat</a></li>
+          <li><a href="mailto:ankitchaubey.dev@gmail.com">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-inner footer-bottom">
+      <div class="footer-meta" style="text-align:left;">© 2026 Ankit Chaubey. Made with ❤️ and lots of ☕</div>
+      <div class="footer-meta">MIT OR Apache-2.0</div>
+    </div>
+  </div>
+</footer>
+
+<button class="to-top" id="toTop" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<script>
+  const buttons = document.querySelectorAll('.switch button');
+  const panels = document.querySelectorAll('.panel');
+
+  function setLang(lang) {
+    buttons.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    panels.forEach(p => p.classList.toggle('active', p.dataset.panel === lang));
+  }
+
+  buttons.forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+  // TgCalls example tabs
+  const tgcButtons = document.querySelectorAll('.tgc-switch button');
+  const tgcPanels = document.querySelectorAll('.tgc-panel');
+  tgcButtons.forEach(b => b.addEventListener('click', () => {
+    tgcButtons.forEach(x => x.classList.toggle('active', x === b));
+    tgcPanels.forEach(p => p.classList.toggle('active', p.dataset.tgcpanel === b.dataset.tgc));
+  }));
+
+  document.querySelectorAll('[data-jump]').forEach(el => {
+    el.addEventListener('click', () => setLang(el.dataset.jump));
+  });
+
+  // Theme toggle
+  const root = document.documentElement;
+  const toggle = document.getElementById('themeToggle');
+  const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+  root.setAttribute('data-theme', prefersLight ? 'light' : 'dark');
+  toggle.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+  });
+
+  // Dual-image carousels: swap slide every 3s
+  document.querySelectorAll('[data-carousel]').forEach((el, i) => {
+    let idx = el.classList.contains('at-1') ? 1 : 0;
+    setInterval(() => {
+      idx = idx === 0 ? 1 : 0;
+      el.classList.toggle('at-0', idx === 0);
+      el.classList.toggle('at-1', idx === 1);
+    }, 3000);
+  });
+
+  // Back to top
+  const toTop = document.getElementById('toTop');
+  window.addEventListener('scroll', () => {
+    toTop.classList.toggle('show', window.scrollY > 480);
+  });
+  toTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Scroll reveal
+  document.querySelectorAll('section').forEach(s => s.classList.add('reveal'));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
