@@ -244,6 +244,85 @@ asyncio.run(main())</pre>
       </div>
       <p class="cap-note">The goal is to stay out of your way: simple things should be simple, and advanced things should still be possible.</p>
 
+      <div class="feature-tabs" id="feature-tabs">
+        <div class="tab-nav" role="tablist" aria-label="Feature categories">
+          <button class="tab-btn active" style="--tab-color:var(--tg);" data-tab="messaging" role="tab" aria-selected="true"><span class="chip"></span>Messaging</button>
+          <button class="tab-btn" style="--tab-color:var(--rust);" data-tab="connectivity" role="tab" aria-selected="false"><span class="chip"></span>Connectivity</button>
+          <button class="tab-btn" style="--tab-color:var(--core);" data-tab="transfers" role="tab" aria-selected="false"><span class="chip"></span>Files &amp; transfers</button>
+          <button class="tab-btn" style="--tab-color:var(--python);" data-tab="framework" role="tab" aria-selected="false"><span class="chip"></span>Framework</button>
+          <button class="tab-btn" style="--tab-color:var(--tg);" data-tab="accounts" role="tab" aria-selected="false"><span class="chip"></span>Accounts &amp; sessions</button>
+          <button class="tab-btn" style="--tab-color:var(--rust);" data-tab="groups" role="tab" aria-selected="false"><span class="chip"></span>Groups &amp; admin</button>
+          <button class="tab-btn" style="--tab-color:var(--core);" data-tab="beyond" role="tab" aria-selected="false"><span class="chip"></span>Beyond messaging</button>
+          <button class="tab-btn" style="--tab-color:var(--python);" data-tab="raw" role="tab" aria-selected="false"><span class="chip"></span>Raw power</button>
+        </div>
+
+        <div class="tab-panels">
+          <div class="tab-panel active" data-panel="messaging" role="tabpanel">
+            <ul>
+              <li><strong>Rich messaging:</strong> text, media, albums, polls, dice, games, reactions, scheduled messages</li>
+              <li><strong>HTML &amp; Markdown:</strong> full parse and generate support for both formats</li>
+              <li><strong>Inline &amp; reply keyboards:</strong> buttons, callbacks, inline mode</li>
+              <li><strong>Reactions &amp; stickers:</strong> granular reaction API with paid Stars reactions, sticker sets, custom emoji</li>
+              <li><strong>Drafts:</strong> save, sync, and clear drafts across devices</li>
+            </ul>
+          </div>
+          <div class="tab-panel" data-panel="connectivity" role="tabpanel">
+            <ul>
+              <li><strong>Proxy support:</strong> SOCKS5 with optional auth</li>
+              <li><strong>MTProxy:</strong> Classic, DD, and FakeTLS transports, via link or manual config</li>
+              <li><strong>Transport probing:</strong> races transports, connects via whichever is fastest</li>
+              <li><strong>Resilient connect:</strong> DNS-over-HTTPS and special-config fallback when TCP is blocked</li>
+            </ul>
+          </div>
+          <div class="tab-panel" data-panel="transfers" role="tabpanel">
+            <ul>
+              <li><strong>CDN:</strong> transparent CDN download handling, no extra calls needed</li>
+              <li><strong>Concurrent transfers:</strong> parallel uploads/downloads with pause, resume, cancel, and progress tracking</li>
+              <li><strong>Resumable transfers:</strong> checkpointed uploads/downloads that survive crashes</li>
+            </ul>
+          </div>
+          <div class="tab-panel" data-panel="framework" role="tabpanel">
+            <ul>
+              <li><strong>Router &amp; dispatcher:</strong> composable filters (&amp;, |, !) for expressive handlers</li>
+              <li><strong>FSM:</strong> type-safe finite state machine for multi-step conversations</li>
+              <li><strong>Middleware:</strong> rate limiting, tracing, panic recovery</li>
+              <li><strong>Conversations:</strong> ask/wait sequential request-response flows outside the router</li>
+            </ul>
+          </div>
+          <div class="tab-panel" data-panel="accounts" role="tabpanel">
+            <ul>
+              <li><strong>Flexible login:</strong> phone + 2FA (SRP), bot token, or QR code, with exportable session strings</li>
+              <li><strong>Session backends:</strong> file, in-memory, string, SQLite, LibSQL</li>
+              <li><strong>Peer resolution:</strong> usernames, phone numbers, links, or raw IDs, resolved cache-first</li>
+              <li><strong>Gap-safe updates:</strong> pts/qts/seq tracking with automatic diff recovery on reconnect</li>
+            </ul>
+          </div>
+          <div class="tab-panel" data-panel="groups" role="tabpanel">
+            <ul>
+              <li><strong>Full admin toolkit:</strong> ban, kick, restrict, promote, and transfer ownership</li>
+              <li><strong>Invite links:</strong> create, edit, revoke, track joins, approve or decline requests</li>
+              <li><strong>Forum topics:</strong> create, edit, and manage topics in forum supergroups</li>
+              <li><strong>Privacy controls:</strong> per-key rules with granular allow/disallow lists</li>
+            </ul>
+          </div>
+          <div class="tab-panel" data-panel="beyond" role="tabpanel">
+            <ul>
+              <li><strong>TgCalls:</strong> group calls, P2P calls, conference calls, screen share/presentation, audio and video</li>
+              <li><strong>Payments:</strong> invoices, plus shipping and pre-checkout query handling</li>
+              <li><strong>Mini apps:</strong> open and manage Telegram mini app sessions</li>
+              <li><strong>Translation &amp; transcription:</strong> built-in message translation and voice-to-text</li>
+              <li><strong>Statistics:</strong> channel and supergroup growth, views, and activity</li>
+            </ul>
+          </div>
+          <div class="tab-panel" data-panel="raw" role="tabpanel">
+            <ul>
+              <li><strong>Raw API:</strong> full TL coverage via <span class="mono">client.invoke()</span></li>
+              <li><strong>Python cross-lang:</strong> native performance with a clean Python API</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <div class="crate-sub">14 crates, each doing own job</div>
       <div class="crate-grid">
         <a class="crate-card main g1" href="/ferogram/">
@@ -705,6 +784,23 @@ calls.play(chat_id, <span class="str">"song.mp3"</span>).await?;</pre>
     });
   }, { threshold: 0.12 });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Feature tabs
+  const featureTabs = document.getElementById('feature-tabs');
+  if (featureTabs) {
+    const btns = featureTabs.querySelectorAll('.tab-btn');
+    const panels = featureTabs.querySelectorAll('.tab-panel');
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        btns.forEach(b => {
+          b.classList.toggle('active', b === btn);
+          b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+        });
+        panels.forEach(p => p.classList.toggle('active', p.dataset.panel === target));
+      });
+    });
+  }
 </script>
 
 </body>
